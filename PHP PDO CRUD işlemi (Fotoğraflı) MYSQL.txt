@@ -1,0 +1,403 @@
+<!-- wp:paragraph {"align":"center"} -->
+<p style="text-align:center">Merhabalar,<br>Bu yazımda sizlere PHP PDO CRUD (Create, Read ,Update, Delete) yani türkçesiyle (Oluşturma , Okuma , Güncelleme, Silme) işlemlerini görmüş olucaksınız.<br><br><strong>Bu CRUD işlemi Fotoğraflı olarak bulunmaktır.</strong><br><a href="https://firatyildiz.net/php-pdo-crud-gosterme-ekle-duzenle-sil-islemi-fotografli-mysql/">Fotoğraf olmayan CRUD işlemine buradan ulaşabilirsiniz.</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Veritabanımız</h4>
+<!-- /wp:heading -->
+
+<!-- wp:image {"id":1138,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://firatyildiz.net/wp-content/uploads/2019/06/fcrud-veritabani.png" alt="PHP PDO CRUD Veritabanı" class="wp-image-1138"/><figcaption>Veritabanımız</figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Veritabanındaki Veriler</h4>
+<!-- /wp:heading -->
+
+<!-- wp:image {"id":1137,"align":"center","width":596,"height":211} -->
+<div class="wp-block-image"><figure class="aligncenter is-resized"><img src="https://firatyildiz.net/wp-content/uploads/2019/06/fcrud-veriler.png" alt="" class="wp-image-1137" width="596" height="211"/></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Veritabanı Bağlantımız (fonk.php)</h4>
+<!-- /wp:heading -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>&lt;?php
+$host = '127.0.0.1';
+$dbname = 'pdocrud';
+$username = 'root';
+$password = '';
+$charset = 'utf8';
+//$collate = 'utf8_unicode_ci';
+$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_PERSISTENT => false,
+    PDO::ATTR_EMULATE_PREPARES => false,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    //   PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES $charset COLLATE $collate"
+];
+try {
+    $baglanti = new PDO($dsn, $username, $password, $options);
+    $baglanti->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo 'Bağlantı hatası: ' . $e->getMessage();
+    exit;
+}
+?></code></pre>
+<!-- /wp:code -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Anasayfamız (Gösterme/READ) (index.php)</h4>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>index.php sayfasında verileri Gösterme işlemleri bulunmaktadır. <br>Ayrıca Düzenle , Ekle , Sil İşlemlerine tıklayarak işlemler yapılabilir.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":1136,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://firatyildiz.net/wp-content/uploads/2019/06/fcrud-home.png" alt="PHP PDO ile CRUD anasayfamız" class="wp-image-1136"/><figcaption>Anasayfamız (READ/Gösterme)</figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;title>PDO CRUD&lt;/title>
+	&lt;link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	&lt;link rel="stylesheet" type="text/css" href="css/all.min.css">
+&lt;/head>
+&lt;body>
+
+	&lt;container>
+		&lt;div class="row">
+			&lt;div class="col-md-8">
+				&lt;a href="ekle.php">&lt;button type="button" class="btn btn-primary btn-lg btn-block">YENİ VERİ EKLE&lt;/button>&lt;/a>
+				&lt;table class="table table-striped">
+					&lt;thead>
+						&lt;tr>
+							&lt;th scope="col">ID&lt;/th>
+							&lt;th scope="col">FOTOĞRAF&lt;/th>
+							&lt;th scope="col">BAŞLIK&lt;/th>
+							&lt;th scope="col">AÇIKLAMA&lt;/th>
+							&lt;th scope="col">Düzenle&lt;/th>
+							&lt;th scope="col">SİL&lt;/th>
+						&lt;/tr>
+					&lt;/thead>
+					&lt;tbody>
+						&lt;?php
+						include('fonk.php'); // İndex.php sayfamıza veritabanını çağırıyoruz
+
+						$sorgu = $baglanti->prepare('Select * from makale'); // Veritabanındaki Makale tablosundaki tüm verileri çekiyoruz
+						$sorgu->execute(); // Sorgumuzu çalıştırıyoruz
+
+						while($sonuc=$sorgu->fetch()) // While Döngüsü ile Verilerimzi döndürüyoruz
+						
+						{  // While Başlangıcı
+
+							?>
+							&lt;tr>
+								&lt;th scope="row">&lt;?= $sonuc['id']?>&lt;/th>
+								&lt;td>&lt;img src="img/&lt;?= $sonuc["foto"] ?>" width="150px"/>&lt;/td>
+								&lt;td>&lt;?= $sonuc['baslik']?>&lt;/td>
+								&lt;td>&lt;?= $sonuc['aciklama']?>&lt;/td>
+								&lt;td>
+								&lt;a href="duzenle.php?id=&lt;?= $sonuc["id"] ?>">&lt;button type="button" class="btn btn-success">Düzenle&lt;/button>&lt;/a>
+								&lt;/td>
+								&lt;td>
+								&lt;a href="sil.php?id=&lt;?= $sonuc["id"] ?>">&lt;button type="button" class="btn btn-warning">SİL&lt;/button>&lt;/a>
+								&lt;/td>
+							&lt;/tr>
+
+							&lt;?php
+						}  // While Bitiş
+
+						?>
+						
+					&lt;/tbody>
+				&lt;/table>
+
+			&lt;/div>
+		&lt;/div>
+	&lt;/container>
+
+	&lt;script src="js/jquery-3.4.1.min.js">&lt;/script>	
+	&lt;script src="js/bootstrap.min.js">&lt;/script>
+&lt;/body>
+&lt;/html></code></pre>
+<!-- /wp:code -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Düzenleme (Edit) sayfası (duzenle.php)</h4>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"align":"center"} -->
+<p style="text-align:center">Verileri Güncellerken Tüm durumları (hata vb) durumları SweetAlert yöntemiyle gösterilmiştir.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":1134,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://firatyildiz.net/wp-content/uploads/2019/06/fcrud-duzenle.png" alt="PHP PDO ile CRUD Düzenle" class="wp-image-1134"/><figcaption>Düzenleme sayfası</figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+    &lt;link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    &lt;title>&lt;/title>
+&lt;/head>
+&lt;?php
+include('fonk.php');
+
+$sorgu = $baglanti->prepare("SELECT * FROM makale Where id=:id");
+$sorgu->execute(['id' => (int)$_GET["id"]]);
+$sonuc = $sorgu->fetch();//sorgu çalıştırılıp veriler alınıyor
+?>
+&lt;body>
+    &lt;div class="container">
+        &lt;div class="row">
+            &lt;div class="col-md-6">
+                &lt;a href="index.php">&lt;button type="button" class="btn btn-danger btn-lg btn-block">Geri DÖN&lt;/button>&lt;/a>
+                &lt;div class="card mb-3">
+                    &lt;div class="card-body">                     
+                       &lt;form method="post" action="" enctype="multipart/form-data">
+                         &lt;div class="form-group">
+                            &lt;img src="img/&lt;?= $sonuc["foto"] ?>" width="150" alt="">
+                            &lt;label for="foto">Foto&lt;/label>
+                            &lt;input type="file" name="foto" class="form-control-file" id="foto">
+                        &lt;/div>
+                        &lt;div class="form-group">
+                            &lt;label>Başlık&lt;/label>
+                            &lt;input required type="text" value="&lt;?= $sonuc["baslik"] ?>" class="form-control" name="baslik"
+                            placeholder="Başlık">
+                        &lt;/div>                  
+                        &lt;div class="form-group">
+                            &lt;label>Açıklama&lt;/label>
+                            &lt;input required type="text" value="&lt;?= $sonuc["aciklama"] ?>" class="form-control" name="aciklama"
+                            placeholder="Açıklama">
+                        &lt;/div>    
+                        &lt;div class="form-group">
+                            &lt;button type="submit" class="btn btn-primary">Güncelle&lt;/button>
+                            &lt;script type="text/javascript" src="js/sweetalert.min.js">&lt;/script>
+                            &lt;?php
+                                if ($_POST) { // Post olup olmadığını kontrol ediyoruz.
+               $baslik = $_POST['baslik']; // Sayfa yenilendikten sonra post edilen değerleri değişkenlere atıyoruz
+               $aciklama = $_POST['aciklama'];
+               $hata = '';
+
+               if ($_FILES["foto"]["name"] != "") {
+                $foto = strtolower($_FILES['foto']['name']);
+                if (file_exists('images/' . $foto)) {
+                    $hata = "$foto diye bir dosya var";
+                } else {
+                    $boyut = $_FILES['foto']['size'];
+                    if ($boyut > (1024 * 1024 * 2)) {
+                        $hata = 'Dosya boyutu 2MB den büyük olamaz.';
+                    } else {
+                        $dosya_tipi = $_FILES['foto']['type'];
+                        $dosya_uzanti = explode('.', $foto);
+                        $dosya_uzanti = $dosya_uzanti[count($dosya_uzanti) - 1];
+
+                        if (!in_array($dosya_tipi, ['image/png', 'image/jpeg']) || !in_array($dosya_uzanti, ['png', 'jpg'])) {
+                            //if (($dosya_tipi != 'image/png' || $dosya_uzanti != 'png' )&amp;&amp;( $dosya_tipi != 'image/jpeg' || $dosya_uzanti != 'jpg')) {
+                            $hata = 'Hata, dosya türü JPEG veya PNG olmalı.';
+                        } else {
+                            $dosya = $_FILES["foto"]["tmp_name"];
+                            copy($dosya, "img/" . $foto);
+                            unlink('img/' . $sonuc["foto"]); //eski dosya siliniyor.
+                        }
+                    }
+                }
+            } else {
+                //Eğer kullanıcı fotoğraf seçmedi ise veri tabanındaki resimi değiştirmiyoruz
+                $foto = $sonuc["foto"];
+            }
+
+            if ($baslik &lt;> "" &amp;&amp; $aciklama &lt;> "" &amp;&amp; $hata == "") { // Veri alanlarının boş olmadığını kontrol ettiriyoruz.
+                //Değişecek veriler
+                $satir = [
+                   'id' => $_GET['id'],
+                   'foto' => $foto,
+                   'baslik' => $baslik,              
+                   'aciklama' => $aciklama,
+               ];
+                // Veri güncelleme sorgumuzu yazıyoruz.
+               $sql = "UPDATE makale SET foto=:foto, baslik=:baslik,aciklama=:aciklama WHERE id=:id;";             
+               $durum = $baglanti->prepare($sql)->execute($satir);
+
+               if ($durum)
+               {
+                echo '&lt;script>swal("Başarılı","Ürün güncellendi","success").then((value)=>{ window.location.href = "index.php"});
+
+                &lt;/script>';     // Eğer güncelleme sorgusu çalıştıysa urunler.php sayfasına yönlendiriyoruz.
+            } else {
+                    echo 'Düzenleme hatası oluştu: '; // id bulunamadıysa veya sorguda hata varsa hata yazdırıyoruz.
+                }
+            } else {
+                echo 'Hata oluştu: ' . $hata; // dosya hatası ve form elemanlarının boş olma durumunua göre hata döndürüyoruz.
+            }
+            if ($hata != "") {
+                echo '&lt;script>swal("Hata","' . $hata . '","error");&lt;/script>';
+            }
+        }
+
+
+        ?>
+    &lt;/div>
+&lt;/form>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/body>
+&lt;/html></code></pre>
+<!-- /wp:code -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Yeni Veri Ekleme (Create) sayfası (ekle.php)</h4>
+<!-- /wp:heading -->
+
+<!-- wp:image {"id":1135,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://firatyildiz.net/wp-content/uploads/2019/06/fcrud-ekleme.png" alt="PHP PDO ile CRUD İşlemi| Veri Ekleme" class="wp-image-1135"/><figcaption>Veri Ekleme Sayfası</figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	&lt;title>&lt;/title>
+&lt;/head>
+&lt;body>
+	&lt;div class="container">
+		&lt;div class="row">
+			&lt;div class="col-md-6">
+				&lt;a href="index.php">&lt;button type="button" class="btn btn-danger btn-lg btn-block">Geri DÖN&lt;/button>&lt;/a>
+				&lt;div class="card mb-3">
+					&lt;div class="card-body">						
+						&lt;form method="post" action="" enctype="multipart/form-data">
+							&lt;div class="form-group">
+								&lt;label for="foto">Foto&lt;/label>
+								&lt;input required type="file" name="foto" class="form-control-file" id="foto">
+							&lt;/div>
+							&lt;div class="form-group">
+								&lt;label>Başlık&lt;/label>
+								&lt;input required type="text" class="form-control" name="baslik" placeholder="Başlık">
+							&lt;/div>				
+							&lt;div class="form-group">
+								&lt;label>Açıklama&lt;/label>
+								&lt;input required type="text" class="form-control" name="aciklama" placeholder="Açıklama">
+							&lt;/div>
+							&lt;div class="form-group">
+								&lt;button type="submit" class="btn btn-primary">Güncelle&lt;/button>
+								&lt;script type="text/javascript" src="js/sweetalert.min.js">&lt;/script>
+							&lt;/div>
+							&lt;?php
+							include('fonk.php');
+
+							if ($_POST) { // Sayfada post olup olmadığını kontrol ediyoruz.
+
+    $baslik = $_POST['baslik']; // Sayfa yenilendikten sonra post edilen değerleri değişkenlere atıyoruz
+    $aciklama = $_POST['aciklama'];   
+    $hata = "";
+
+    // Veri alanlarının boş olmadığını kontrol ettiriyoruz. başka kontrollerde yapabilirsiniz.
+    if ($baslik &lt;> "" &amp;&amp; $aciklama &lt;> "" &amp;&amp; isset($_FILES['foto'])) {
+
+    	if ($_FILES['foto']['error'] != 0) {
+    		$hata .= 'Dosya yüklenirken hata gerçekleşti lütfen daha sonra tekrar deneyiniz.';
+    	} else {
+
+    		$dosya_adi = strtolower($_FILES['foto']['name']);
+    		if (file_exists('images/' . $dosya_adi)) {
+    			$hata .= " $dosya_adi diye bir dosya var";
+    		} else {
+    			$boyut = $_FILES['foto']['size'];
+    			if ($boyut > (1024 * 1024 * 2)) {
+    				$hata .= ' Dosya boyutu 2MB den büyük olamaz.';
+    			} else {
+    				$dosya_tipi = $_FILES['foto']['type'];
+    				$dosya_uzanti = explode('.', $dosya_adi);
+    				$dosya_uzanti = $dosya_uzanti[count($dosya_uzanti) - 1];
+
+    				if (!in_array($dosya_tipi, ['image/png', 'image/jpeg']) || !in_array($dosya_uzanti, ['png', 'jpg'])) {
+                        //if (($dosya_tipi != 'image/png' || $dosya_uzanti != 'png' )&amp;&amp;( $dosya_tipi != 'image/jpeg' || $dosya_uzanti != 'jpg')) {
+    					$hata .= ' Hata, dosya türü JPEG veya PNG olmalı.';
+    				} else {
+    					$foto = $_FILES['foto']['tmp_name'];
+    					copy($foto, 'img/' . $dosya_adi);
+
+
+                        //Eklencek veriler diziye ekleniyor
+    					$satir = [
+    						'foto' => $dosya_adi,
+    						'baslik' => $baslik,    						
+    						'aciklama' => $aciklama,
+    					];
+
+                        // Veri ekleme sorgumuzu yazıyoruz.
+    					$sql = "INSERT INTO makale SET foto=:foto, baslik=:baslik,aciklama=:aciklama;";
+    					$durum = $baglanti->prepare($sql)->execute($satir);
+
+    					if ($durum) {
+    						echo '&lt;script>swal("Başarılı","Veri Eklendi","success").then((value)=>{ window.location.href = "index.php"});
+
+    						&lt;/script>';
+    					}
+
+
+    				}
+    			}
+    		}
+    	}
+    }
+    if($hata!=""){
+    	echo '&lt;script>swal("Hata","'.$hata.'","error");&lt;/script>';
+    }
+}
+
+?>
+&lt;/form>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/body>
+&lt;/html></code></pre>
+<!-- /wp:code -->
+
+<!-- wp:heading {"level":4,"align":"center"} -->
+<h4 style="text-align:center">Veri Silme (Delete)  İşlemi (sil.php)</h4>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"align":"center"} -->
+<p style="text-align:center">index.php sayfasında sil butonuna basıldığı anda çalışacak kodlar , bu kodlar ile veriler ile beraber fotoğraf ile silinebilmektedir , dilerseniz unlink kodunu silip fotoğrafları olduğu gibi bırakabilirsiniz.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>&lt;?php
+if ($_GET) {
+
+    $sayfa = $_GET["sayfa"];
+    include("fonk.php"); // veritabanı bağlantımızı sayfamıza ekliyoruz.
+    $sorgu = $baglanti->prepare("SELECT * FROM makale Where id=:id");
+    $sorgu->execute(['id' => (int)$_GET["id"]]);
+    $sonuc = $sorgu->fetch();//sorgu çalıştırılıp veriler alınıyor
+    unlink('img/' . $sonuc["foto"]);//eski dosya siliniyor. isteğe bağlı
+
+    // id'si seçilen veriyi silme sorgumuzu yazıyoruz.
+    $where = ['id' => (int)$_GET['id']];
+    $durum = $baglanti->prepare("DELETE FROM makale WHERE id=:id")->execute($where);
+    if ($durum) {
+        header("location:index.php"); // Eğer sorgu çalışırsa index.php sayfasına gönderiyoruz.
+    }
+}
+?></code></pre>
+<!-- /wp:code -->
+
+<!-- wp:paragraph {"align":"center"} -->
+<p style="text-align:center">Yazımızın sonuna geldik :(<br><br>Bu yazım sizlere faydalı olduğunu düşünüyorum , bu uygulamayı birçok projelerinizde kullanabilir veya entegre edebilirsiniz.<br><br>Uygulamayı projenize entegre etmeden test ediniz, test ettikten sonra entegre edin.<br><br>PHP PDO ile CRUD Uygulamasını ve Veritabanına Buradan Bulabilirsiniz ==&gt; <a href="https://drive.google.com/open?id=1tdNUOgeuALiZS_f8p0RrMsuTaVa1KDoH">PdoCRUD.zip</a><br><br> Görüşleriniz bizim için değerli , emoji bırakarak yada yorum yazarak görüşlerinizi bize belirtebilirsiniz.&nbsp; <br><br>Sevgi ve saygılarımla<br><br>İyi KODLAMALAR :)</p>
+<!-- /wp:paragraph -->
